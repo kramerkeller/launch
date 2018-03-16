@@ -20,6 +20,7 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
+FIRST_PLAYER = 'Computer'
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -86,16 +87,18 @@ def computer_places_piece!(brd)
   square = nil
 
   WINNING_LINES.each do |line|
-    square = find_winning_square_for(PLAYER_MARKER, line, brd)
+    square = find_winning_square_for(COMPUTER_MARKER, line, brd)
     break if square
   end
 
   if !square
     WINNING_LINES.each do |line|
-      square = find_winning_square_for(COMPUTER_MARKER, line, brd)
+      square = find_winning_square_for(PLAYER_MARKER, line, brd)
       break if square
     end
   end
+
+  square = 5 if !square && brd[5] == " "
 
   if !square
     square = empty_squares(brd).sample
@@ -125,20 +128,34 @@ end
 
 ####################################
 
+def place_piece!(current_player, board)
+  if current_player == 'Player'
+    player_places_piece!(board)
+  else
+    computer_places_piece!(board)
+  end
+end
+
+def alternate_player(current_player)
+  current_player == 'Computer' ? 'Player' : 'Computer'
+end
+
+# new game best of 5
 loop do
   score = {'Player' => 0, 'Computer' => 0}
+  next_player = FIRST_PLAYER
+
+  # new round
   loop do
+    current_player = next_player
     board = initialize_board
 
     loop do
       display_board(board)
       score.each { |k, v| prompt "#{k}: #{v} "}
-
-      player_places_piece!(board)
+      place_piece!(current_player, board)
       break if someone_won?(board) || board_full?(board)
-
-      computer_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
+      current_player = alternate_player(current_player)
     end
 
     display_board(board)
@@ -152,6 +169,8 @@ loop do
     end
     score.each { |k, v| puts "#{k}: #{v} "}
     break if score.has_value?(5)
+
+    next_player = alternate_player(next_player)
   end
 
   prompt "Wanna play a again? (y or n)"
