@@ -98,26 +98,35 @@ def detect_winner(brd)
   nil
 end
 
-loop do
-  board = initialize_board
-  display_board(board)
+####################################
 
+loop do
+  score = {'Player' => 0, 'Computer' => 0}
   loop do
+    board = initialize_board
+
+    loop do
+      display_board(board)
+      score.each { |k, v| prompt "#{k}: #{v} "}
+
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+    end
+
     display_board(board)
 
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
-
-  display_board(board)
-
-  if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
-  else
-    prompt "It's a tie!"
+    if someone_won?(board)
+      winner = detect_winner(board)
+      prompt "#{winner} won!"
+      score[winner] += 1
+    else
+      prompt "It's a tie!"
+    end
+    score.each { |k, v| puts "#{k}: #{v} "}
+    break if score.has_value?(5)
   end
 
   prompt "Wanna play a again? (y or n)"
